@@ -24,8 +24,15 @@ pipeline {
 
         stage('Push Docker Images') {
             steps {
-                sh 'docker push $CAST_IMAGE'
-                sh 'docker push $MOVIE_IMAGE'
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                    sh 'docker push $CAST_IMAGE'
+                    sh 'docker push $MOVIE_IMAGE'
+                }
             }
         }
 
@@ -65,3 +72,4 @@ pipeline {
         }
     }
 }
+
