@@ -5,6 +5,7 @@ pipeline {
         DOCKERHUB_USER = "glodyamba"
         CAST_IMAGE = "${DOCKERHUB_USER}/cast-service:latest"
         MOVIE_IMAGE = "${DOCKERHUB_USER}/movie-service:latest"
+        KUBECONFIG_CRED = "config"
     }
 
     stages {
@@ -44,10 +45,8 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'config', variable: 'KUBECONFIG')]) {
                     sh '''
-                      helm upgrade --install cast-dev ./charts/cast \
-                        --namespace dev --create-namespace
-                      helm upgrade --install movie-dev ./charts/movie \
-                        --namespace dev --create-namespace
+                      helm upgrade --install cast-dev ./charts/cast --namespace dev --create-namespace
+                      helm upgrade --install movie-dev ./charts/movie --namespace dev --create-namespace
                     '''
                 }
             }
@@ -57,10 +56,8 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'config', variable: 'KUBECONFIG')]) {
                     sh '''
-                      helm upgrade --install cast-qa ./charts/cast \
-                        --namespace qa --create-namespace
-                      helm upgrade --install movie-qa ./charts/movie \
-                        --namespace qa --create-namespace
+                      helm upgrade --install cast-qa ./charts/cast --namespace qa --create-namespace
+                      helm upgrade --install movie-qa ./charts/movie --namespace qa --create-namespace
                     '''
                 }
             }
@@ -70,10 +67,8 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'config', variable: 'KUBECONFIG')]) {
                     sh '''
-                      helm upgrade --install cast-staging ./charts/cast \
-                        --namespace staging --create-namespace
-                      helm upgrade --install movie-staging ./charts/movie \
-                        --namespace staging --create-namespace
+                      helm upgrade --install cast-staging ./charts/cast --namespace staging --create-namespace
+                      helm upgrade --install movie-staging ./charts/movie --namespace staging --create-namespace
                     '''
                 }
             }
@@ -83,14 +78,15 @@ pipeline {
             when {
                 branch 'master'
             }
+            input {
+                message "Déployer en PRODUCTION ?"
+                ok "Déployer"
+            }
             steps {
-                input message: 'Déployer en PRODUCTION ?'
                 withCredentials([file(credentialsId: 'config', variable: 'KUBECONFIG')]) {
                     sh '''
-                      helm upgrade --install cast-prod ./charts/cast \
-                        --namespace prod --create-namespace
-                      helm upgrade --install movie-prod ./charts/movie \
-                        --namespace prod --create-namespace
+                      helm upgrade --install cast-prod ./charts/cast --namespace prod --create-namespace
+                      helm upgrade --install movie-prod ./charts/movie --namespace prod --create-namespace
                     '''
                 }
             }
@@ -98,4 +94,3 @@ pipeline {
     }
 }
 
-     
